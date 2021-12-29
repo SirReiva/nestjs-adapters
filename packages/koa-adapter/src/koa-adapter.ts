@@ -95,9 +95,12 @@ export class KoaAdapter extends AbstractHttpAdapter {
             }
             return body.getStream().pipe(response.res);
         }
-        return isObject(body)
-            ? response.res.end(JSON.stringify(body))
-            : response.res.end(String(body));
+        if (isObject(body)) {
+            response.res.setHeader('Content-Type', 'application/json');
+            response.res.end(JSON.stringify(body));
+            return;
+        }
+        return response.res.end(String(body));
     }
 
     public status(response: Response, statusCode: number) {

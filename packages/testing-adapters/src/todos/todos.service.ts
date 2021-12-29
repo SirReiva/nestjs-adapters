@@ -23,7 +23,7 @@ export class TodoService {
     deleteById(id: string) {
         const todoToDelete = this.todos.find((todo) => todo.id === id);
         if (!todoToDelete) return null;
-        this.todos = this.todos.filter((todo) => todo === todoToDelete);
+        this.todos = this.todos.filter((todo) => todo !== todoToDelete);
         return todoToDelete;
     }
 

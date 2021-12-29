@@ -2,6 +2,7 @@ import {
     InternalServerErrorException,
     NestApplicationOptions,
     RequestMethod,
+    StreamableFile,
     VersioningOptions,
     VersioningType,
     VERSION_NEUTRAL,
@@ -47,7 +48,13 @@ export class PolkaAdapter extends AbstractHttpAdapter {
     }
 
     reply(response: ServerResponse, body: any, statusCode?: number) {
-        return send(response, statusCode ?? 200, body);
+        if (body instanceof StreamableFile)
+            return send(
+                response,
+                statusCode || response.statusCode || 206,
+                body.getStream(),
+            );
+        return send(response, statusCode || response.statusCode || 200, body);
     }
 
     close(): Promise<void> {
