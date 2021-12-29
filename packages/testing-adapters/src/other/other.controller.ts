@@ -11,4 +11,10 @@ export class OtherController {
         );
         return new StreamableFile(file);
     }
+
+    @Get('image')
+    image() {
+        const file = createReadStream(join(__dirname, '../../assets/test.png'));
+        return new StreamableFile(file);
+    }
 }
