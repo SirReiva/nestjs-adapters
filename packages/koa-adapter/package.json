@@ -1,0 +1,32 @@
+{
+    "name": "@nestjs-adapters/koa",
+    "version": "1.0.0",
+    "description": "",
+    "main": "dist/index.js",
+    "types": "dist/index",
+    "scripts": {
+        "build": "tsc -p tsconfig.build.json"
+    },
+    "author": "SirReiva",
+    "license": "MIT",
+    "devDependencies": {
+        "@koa/cors": "^3.1.0",
+        "@nestjs/common": "^8.2.4",
+        "@nestjs/core": "^8.2.4",
+        "@types/koa": "^2.13.4",
+        "@types/koa__cors": "^3.1.1",
+        "@types/koa-bodyparser": "^4.3.5",
+        "@types/koa-router": "^7.4.4",
+        "@types/koa-static": "^4.0.2",
+        "@types/node": "^17.0.5",
+        "koa": "^2.13.4",
+        "koa-bodyparser": "^4.3.0",
+        "koa-router": "^10.1.1",
+        "koa-static": "^5.0.0",
+        "koa-views": "^8.0.0",
+        "typescript": "^4.3.5"
+    },
+    "dependencies": {
+        "reflect-metadata": "^0.1.13"
+    }
+}
