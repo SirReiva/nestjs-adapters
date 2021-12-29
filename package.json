@@ -3,6 +3,13 @@
     "private": true,
     "devDependencies": {
         "lerna": "^4.0.0",
+        "lerna-dependency-graph": "^1.1.0",
         "prettier": "^2.5.1"
+    },
+    "scripts": {
+        "prepare": "lerna bootstrap --hoist",
+        "postbuild": "lerna bootstrap --hoist",
+        "build": "lerna run build",
+        "graph": "lerna-dependency-graph"
     }
 }
