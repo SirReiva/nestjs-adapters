@@ -1,6 +1,5 @@
-import { PolkaAdapter } from '@nestjs-adapters/polka';
-import { TinyAdapter } from '@nestjs-adapters/tiny-http';
-import { ValidationPipe } from '@nestjs/common';
+import { KoaAdapter } from '@nestjs-adapters/koa';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
@@ -10,12 +9,15 @@ export const importDynamic = new Function(
 );
 
 async function bootstrap() {
-    const { App } = await importDynamic('@tinyhttp/app');
+    // const { App } = await importDynamic('@tinyhttp/app');
 
-    const tApp = new App();
+    // const tApp = new App();
 
-    const app = await NestFactory.create(AppModule, new TinyAdapter(tApp));
+    const app = await NestFactory.create(AppModule, new KoaAdapter());
     app.setGlobalPrefix('api');
+    app.enableVersioning({
+        type: VersioningType.URI,
+    });
     app.useGlobalPipes(new ValidationPipe());
     await app.listen(3000);
 }

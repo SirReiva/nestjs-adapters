@@ -1,17 +1,24 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Version } from '@nestjs/common';
 import { AppService } from './app.service';
 
-@Controller()
+@Controller('resources')
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+    constructor(private readonly appService: AppService) {}
 
-  @Get()
-  getHello(): string {
-    return this.appService.getHello();
-  }
+    @Get()
+    @Version('1')
+    getHelloV1(): string {
+        return this.appService.getHello() + 'V1';
+    }
 
-  @Get('object')
-  getObject() {
-    return this.appService.getObject();
-  }
+    @Get()
+    @Version('2')
+    getHelloV2(): string {
+        return this.appService.getHello() + 'V2';
+    }
+
+    @Get('object')
+    getObject() {
+        return this.appService.getObject();
+    }
 }
