@@ -10,10 +10,9 @@ import {
 import { VersionValue } from '@nestjs/common/interfaces';
 import { CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { loadPackage } from '@nestjs/common/utils/load-package.util';
-import { isString } from '@nestjs/common/utils/shared.utils';
+import { isObject, isString } from '@nestjs/common/utils/shared.utils';
 import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
 import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
-import send from '@polka/send-type';
 import { json, urlencoded } from 'body-parser';
 import { createServer as createHttpServer, ServerResponse } from 'http';
 import { createServer as createHttpsServer } from 'https';
@@ -22,6 +21,10 @@ import type { Options as SirvOptions } from 'sirv';
 
 export interface SirvNestOptions extends SirvOptions {
     prefix?: string;
+}
+
+interface ExtendedResponse extends ServerResponse {
+    code?: number;
 }
 
 export class PolkaAdapter extends AbstractHttpAdapter {
@@ -47,14 +50,37 @@ export class PolkaAdapter extends AbstractHttpAdapter {
         );
     }
 
-    reply(response: ServerResponse, body: any, statusCode?: number) {
-        if (body instanceof StreamableFile)
-            return send(
-                response,
-                statusCode || response.statusCode || 206,
-                body.getStream(),
-            );
-        return send(response, statusCode || response.statusCode || 200, body);
+    reply(response: ExtendedResponse, body: any, statusCode?: number) {
+        const status = statusCode || response.code;
+        if (body instanceof StreamableFile) {
+            response.writeHead(status || 206, body.getHeaders());
+            return body.getStream().pipe(response);
+        }
+
+        if (isObject(body)) {
+            const data = JSON.stringify(body);
+            return response
+                .writeHead(status || 200, {
+                    'content-type': 'application/json;charset=utf-8',
+                    'content-length': Buffer.byteLength(data),
+                })
+                .end(data);
+        }
+        if (body instanceof Buffer) {
+            return response
+                .writeHead(status || 200, {
+                    'content-type': 'application/json;charset=utf-8',
+                    'content-length': Buffer.byteLength(body.toString()),
+                })
+                .end(body);
+        }
+
+        return response
+            .writeHead(status || 200, {
+                'content-type': 'text/plain',
+                'content-length': Buffer.byteLength(body || ''),
+            })
+            .end(body);
     }
 
     close(): Promise<void> {
@@ -122,8 +148,8 @@ export class PolkaAdapter extends AbstractHttpAdapter {
         return request.url;
     }
 
-    status(response: ServerResponse, statusCode: number) {
-        response.statusCode = statusCode;
+    status(response: ExtendedResponse, statusCode: number) {
+        response.code = statusCode;
     }
 
     render(response: ServerResponse, view: string, options: any) {
