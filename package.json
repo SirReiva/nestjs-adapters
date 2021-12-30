@@ -11,6 +11,7 @@
         "prepare": "lerna bootstrap --hoist",
         "postbuild": "lerna bootstrap --hoist",
         "build": "lerna run build",
+        "test": "lerna run test:e2e",
         "graph": "lerna-dependency-graph"
     }
 }
