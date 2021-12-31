@@ -9,7 +9,7 @@
     },
     "scripts": {
         "prepare": "lerna bootstrap --hoist",
-        "postbuild": "lerna bootstrap --hoist",
+        "postbuild": "lerna link",
         "build": "lerna run build",
         "test": "lerna run test:e2e",
         "graph": "lerna-dependency-graph"
