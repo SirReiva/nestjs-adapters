@@ -177,7 +177,8 @@ export class PolkaAdapter extends AbstractHttpAdapter {
     registerParserMiddleware(prefix?: string) {
         if (prefix) {
             this.use(prefix, json());
-            return this.use(prefix, urlencoded({ extended: true }));
+            this.use(prefix, urlencoded({ extended: true }));
+            return;
         }
         this.use(json());
         this.use(urlencoded({ extended: true }));

@@ -25,8 +25,8 @@ Adapters.forEach((Adapter) => {
             app = moduleFixture.createNestApplication(new Adapter());
             app.setGlobalPrefix('api');
             app.enableVersioning({
-                type: VersioningType.HEADER,
-                header: 'version',
+                type: VersioningType.MEDIA_TYPE,
+                key: 'v=',
             });
             app.useGlobalPipes(new ValidationPipe());
             await app.init();
@@ -39,7 +39,7 @@ Adapters.forEach((Adapter) => {
         it('/api/resources (GET)', (done) => {
             request(app.getHttpServer())
                 .get('/api/resources')
-                .set('version', '1')
+                .set('Accept', 'application/json;v=1')
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
@@ -51,7 +51,7 @@ Adapters.forEach((Adapter) => {
         it('/api/resources (GET)', (done) => {
             request(app.getHttpServer())
                 .get('/api/resources')
-                .set('version', '2')
+                .set('Accept', 'application/json;v=2')
                 .expect(200)
                 .end((err, res) => {
                     if (err) return done(err);
