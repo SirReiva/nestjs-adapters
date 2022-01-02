@@ -23,7 +23,14 @@ import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
 import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
 import { createServer as createHttpServer } from 'http';
 import { createServer as createHttpsServer } from 'https';
-import Koa, { Context, Middleware, Next, Request, Response } from 'koa';
+import Koa, {
+    Context,
+    Middleware,
+    Next,
+    ParameterizedContext,
+    Request,
+    Response,
+} from 'koa';
 import koaBodyBarser from 'koa-bodyparser';
 import KoaRouter from 'koa-router';
 import type { Options as ServeStaticOptions } from 'koa-static';
@@ -35,14 +42,14 @@ export interface KoaViewsOptions extends Omit<ViewsOptions, 'autoRender'> {
 }
 
 export type NestKoaFunctionalMiddleware = (
-    req: Koa.Request,
-    res: Koa.Response,
-    next: Koa.Next,
+    req: Request,
+    res: Response,
+    next: Next,
 ) => Promise<any> | any;
 
 export const koaToNestMiddleware =
-    (middleware: Koa.Middleware<any, any>): NestKoaFunctionalMiddleware =>
-    (req: Koa.Request, res: Koa.Response, next: Koa.Next) =>
+    (middleware: Middleware<any, any>): NestKoaFunctionalMiddleware =>
+    (req: Request, res: Response, next: Next) =>
         middleware(req.ctx, next);
 
 const nestToKoaMiddleware =
@@ -196,15 +203,15 @@ export class KoaAdapter extends AbstractHttpAdapter {
         return this.set('view engine', engine);
     }
 
-    public getRequestHostname(request: any): string {
+    public getRequestHostname(request: Request): string {
         return request.hostname;
     }
 
-    public getRequestMethod(request: any): string {
+    public getRequestMethod(request: Request): string {
         return request.method;
     }
 
-    public getRequestUrl(request: any): string {
+    public getRequestUrl(request: Request): string {
         return request.originalUrl;
     }
 
@@ -329,7 +336,7 @@ export class KoaAdapter extends AbstractHttpAdapter {
     }
 
     private createRouteHandler(routeHandler: KoaHandler) {
-        return (ctx: Koa.ParameterizedContext, next: Koa.Next) => {
+        return (ctx: ParameterizedContext, next: Next) => {
             ctx.respond = false;
             routeHandler(ctx.request, ctx.response, next);
         };
