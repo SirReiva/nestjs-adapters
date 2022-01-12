@@ -1,0 +1,1 @@
+export const MULTER_MODULE_OPTIONS = Symbol('MULTER_MODULE_OPTIONS');

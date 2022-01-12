@@ -1,17 +1,20 @@
-import {
-    BusBoyFile,
-    FileInterceptor,
-    UploadedFile,
-} from '@nestjs-adapters/common';
+import { FileInterceptor } from '@nestjs-adapters/koa';
 import {
     Controller,
     Get,
     Post,
+    UploadedFile,
     UseInterceptors,
     Version,
 } from '@nestjs/common';
+import { diskStorage } from 'multer';
 import { resolve } from 'path';
 import { AppService } from './app.service';
+
+export const storage = diskStorage({
+    destination: resolve(__dirname, '../uploads'),
+    filename: (_req, f, cb) => cb(null, f.originalname),
+});
 
 @Controller('resources')
 export class AppController {
@@ -35,13 +38,13 @@ export class AppController {
     }
 
     @Post('/file')
-    @UseInterceptors(FileInterceptor(resolve(__dirname, '../uploads')))
-    file(
-        @UploadedFile('file') file: BusBoyFile,
-        @UploadedFile('file2') file2: BusBoyFile,
-    ) {
-        console.log(file);
-        console.log(file2);
-        return 'ok';
+    @UseInterceptors(
+        FileInterceptor('file', {
+            storage: storage,
+            limits: { files: 1, fileSize: 8000000 },
+        }),
+    )
+    file(@UploadedFile('file') file: any) {
+        return file;
     }
 }

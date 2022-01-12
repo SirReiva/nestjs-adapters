@@ -19,5 +19,6 @@
         "noFallthroughCasesInSwitch": false,
         "esModuleInterop": true,
         "allowJs": true
-    }
+    },
+    "include": ["src"]
 }

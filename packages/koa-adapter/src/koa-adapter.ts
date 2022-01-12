@@ -247,7 +247,7 @@ export class KoaAdapter extends AbstractHttpAdapter {
     }
 
     public registerParserMiddleware(prefix?: string): any {
-        this.getRouter().use(koaBodyBarser(), async (ctx, next) => {
+        this.getRouter().use(koaBodyBarser() as any, async (ctx, next) => {
             // This is because nest expects params in request object so we need to extend it
             Object.assign(ctx.request, { params: ctx.params });
             await next();
@@ -336,7 +336,7 @@ export class KoaAdapter extends AbstractHttpAdapter {
     }
 
     private createRouteHandler(routeHandler: KoaHandler) {
-        return (ctx: ParameterizedContext, next: Next) => {
+        return (ctx: ParameterizedContext<any, any, any>, next: Next) => {
             ctx.respond = false;
             routeHandler(ctx.request, ctx.response, next);
         };
