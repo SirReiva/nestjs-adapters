@@ -33,7 +33,8 @@ Adapters.forEach((Adapter) => {
         });
 
         afterEach(async () => {
-            await app.close();
+            app && (await app.close());
+            app = null;
         });
 
         it('/api/v1/resources (GET)', (done) => {

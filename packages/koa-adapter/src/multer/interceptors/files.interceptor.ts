@@ -25,8 +25,6 @@ export function FilesInterceptor(
     class MixinInterceptor implements NestInterceptor {
         protected multer: ReturnType<typeof multer>;
 
-        private koaInstance: Koa;
-
         constructor(
             private adapterHost: HttpAdapterHost,
             @Optional()
@@ -37,7 +35,10 @@ export function FilesInterceptor(
                 ...options,
                 ...localOptions,
             });
-            this.koaInstance = this.adapterHost.httpAdapter.getInstance<Koa>();
+        }
+
+        getInstace() {
+            return this.adapterHost.httpAdapter.getInstance<Koa>();
         }
 
         async intercept(
@@ -49,7 +50,7 @@ export function FilesInterceptor(
             await new Promise<void>((resolve, reject) => {
                 const call = this.multer
                     .array(fieldName, maxCount)
-                    .bind(this.koaInstance);
+                    .bind(this.getInstace());
                 call(ctx.getRequest<Request>().ctx, () => resolve()).catch(
                     (err: Error) => reject(transformException(err)),
                 );
