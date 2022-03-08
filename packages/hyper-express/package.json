@@ -22,7 +22,7 @@
     },
     "dependencies": {
         "content-type": "^1.0.4",
-        "hyper-express": "^5.8.2",
+        "hyper-express": "^5.8.5",
         "reflect-metadata": "^0.1.13"
     }
 }
