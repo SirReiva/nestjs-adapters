@@ -13,11 +13,11 @@
     "devDependencies": {
         "@nestjs/common": "8.4.0",
         "@nestjs/core": "8.4.0",
-        "@types/node": "^17.0.17",
+        "@types/node": "^17.0.21",
         "@tinyhttp/cors": "^2.0.0",
         "sirv": "2.0.2"
     },
     "dependencies": {
-        "@tinyhttp/app": "^2.0.16"
+        "@tinyhttp/app": "^2.0.17"
     }
 }
