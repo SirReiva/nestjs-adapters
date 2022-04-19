@@ -5,18 +5,13 @@ import {
     VersioningType,
 } from '@nestjs/common';
 import request from 'supertest';
-import { KoaAdapter } from '@nestjs-adapters/koa';
 import { AppModule } from './../src/app.module';
+import { KoaAdapter } from '@nestjs-adapters/koa';
 import { PolkaAdapter } from '@nestjs-adapters/polka';
 import { RestanaAdapter } from '@nestjs-adapters/restana';
 import { HyperExpressAdapter } from '@nestjs-adapters/hyper-express';
 
-const Adapters = [
-    KoaAdapter,
-    PolkaAdapter,
-    RestanaAdapter,
-    HyperExpressAdapter,
-];
+const Adapters = [KoaAdapter, PolkaAdapter, RestanaAdapter];
 
 Adapters.forEach((Adapter) => {
     describe(`CRUD ${Adapter.name} (e2e)`, () => {

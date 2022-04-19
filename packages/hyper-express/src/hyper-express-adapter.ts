@@ -17,13 +17,18 @@ import { Server } from 'hyper-express';
 import Response from 'hyper-express/types/components/http/Response';
 import Request from 'hyper-express/types/components/http/Request';
 import { parse } from 'content-type';
-import { loadPackage } from '@nestjs/common/utils/load-package.util';
+import type { ServerConstructorOptions } from 'hyper-express/types/components/Server';
 
 export class HyperExpressAdapter extends AbstractHttpAdapter<
     Server,
     Request,
     Response
 > {
+    constructor(opts?: ServerConstructorOptions) {
+        super(new Server(opts));
+        this.httpServer = this.instance;
+    }
+
     private readonly routerMethodFactory = new RouterMethodFactory();
 
     public reply(response: Response, body: any, statusCode?: number) {
