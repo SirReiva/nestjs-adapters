@@ -13,9 +13,7 @@ import { NestApplicationOptions } from '@nestjs/common/interfaces/nest-applicati
 import { isNil, isObject, isString } from '@nestjs/common/utils/shared.utils';
 import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
 import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
-import { Server } from 'hyper-express';
-import Response from 'hyper-express/types/components/http/Response';
-import Request from 'hyper-express/types/components/http/Request';
+import { Response, Server, Request } from 'hyper-express';
 import { parse } from 'content-type';
 import type { ServerConstructorOptions } from 'hyper-express/types/components/Server';
 
@@ -27,6 +25,8 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
     constructor(opts?: ServerConstructorOptions) {
         super(new Server(opts));
         this.httpServer = this.instance;
+        //@ts-ignore
+        this.httpServer.address = function () {};
     }
 
     private readonly routerMethodFactory = new RouterMethodFactory();
@@ -36,7 +36,7 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
             response.status(statusCode);
         }
         if (isNil(body)) {
-            return response.end('');
+            return response.end();
         }
         if (body instanceof StreamableFile) {
             const streamHeaders = body.getHeaders();
@@ -49,7 +49,7 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
                     streamHeaders.disposition,
                 );
             }
-            return body.getStream().pipe(response.writable);
+            return body.getStream().pipe(response);
         }
         return isObject(body)
             ? response.json(body)
@@ -65,7 +65,8 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
     }
 
     public redirect(response: Response, statusCode: number, url: string) {
-        throw Error('Not implemented');
+        response.status(statusCode);
+        response.redirect(url);
     }
 
     public setErrorHandler(handler: Function, prefix?: string) {
@@ -91,6 +92,10 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         callback?: () => void,
     );
     public listen(port: any, ...args: any[]) {
+        //@ts-ignore
+        this.httpServer.address = function () {
+            return { port: `https://localhost:${port}` };
+        };
         return this.httpServer.listen(port, ...args);
     }
 

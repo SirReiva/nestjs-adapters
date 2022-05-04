@@ -11,7 +11,12 @@ import { PolkaAdapter } from '@nestjs-adapters/polka';
 import { RestanaAdapter } from '@nestjs-adapters/restana';
 import { HyperExpressAdapter } from '@nestjs-adapters/hyper-express';
 
-const Adapters = [KoaAdapter, PolkaAdapter, RestanaAdapter];
+const Adapters = [
+    KoaAdapter,
+    PolkaAdapter,
+    RestanaAdapter,
+    HyperExpressAdapter,
+];
 
 Adapters.forEach((Adapter) => {
     describe(`CRUD ${Adapter.name} (e2e)`, () => {
