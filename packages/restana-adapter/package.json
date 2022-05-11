@@ -23,6 +23,6 @@
     },
     "dependencies": {
         "body-parser": "1.20.0",
-        "restana": "4.9.4"
+        "restana": "4.9.5"
     }
 }
