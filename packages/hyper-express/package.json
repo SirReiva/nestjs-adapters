@@ -11,8 +11,8 @@
     "author": "SirReiva",
     "license": "MIT",
     "devDependencies": {
-        "@nestjs/common": "8.4.5",
-        "@nestjs/core": "8.4.5",
+        "@nestjs/common": "8.4.6",
+        "@nestjs/core": "8.4.6",
         "@types/content-type": "1.1.5",
         "@types/node": "17.0.23",
         "live-directory": "2.3.2",
