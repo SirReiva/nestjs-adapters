@@ -2,10 +2,10 @@
     "name": "root",
     "private": true,
     "devDependencies": {
-        "@nestjs/platform-express": "8.4.4",
-        "lerna": "4.0.0",
+        "@nestjs/platform-express": "8.4.7",
+        "lerna": "5.1.4",
         "lerna-dependency-graph": "1.1.0",
-        "prettier": "2.6.2",
+        "prettier": "2.7.1",
         "rimraf": "3.0.2"
     },
     "scripts": {

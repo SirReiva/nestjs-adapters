@@ -6,16 +6,21 @@ import {
     VersioningType,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import getPort from 'get-port';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
 const Adapters = [KoaAdapter, /*PolkaAdapter,*/ RestanaAdapter];
 
+const url = 'http://localhost';
+
 Adapters.forEach((Adapter) => {
+    let port: number;
     describe(`VERSIONING ${Adapter.name} (e2e)`, () => {
         let app: INestApplication;
 
-        beforeEach(async () => {
+        beforeAll(async () => {
+            port = await getPort();
             const moduleFixture: TestingModule = await Test.createTestingModule(
                 {
                     imports: [AppModule],
@@ -30,15 +35,16 @@ Adapters.forEach((Adapter) => {
             });
             app.useGlobalPipes(new ValidationPipe());
             await app.init();
+            await app.listen(port);
         });
 
-        afterEach(async () => {
+        afterAll(async () => {
             app && (await app.close());
             app = null;
         });
 
         it('/api/resources (GET)', (done) => {
-            request(app.getHttpServer())
+            request(`${url}:${port}`)
                 .get('/api/resources')
                 .set('version', '1')
                 .expect(200)
@@ -50,7 +56,7 @@ Adapters.forEach((Adapter) => {
         });
 
         it('/api/resources (GET)', (done) => {
-            request(app.getHttpServer())
+            request(`${url}:${port}`)
                 .get('/api/resources')
                 .set('version', '2')
                 .expect(200)

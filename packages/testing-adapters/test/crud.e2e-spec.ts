@@ -10,6 +10,7 @@ import { KoaAdapter } from '@nestjs-adapters/koa';
 import { PolkaAdapter } from '@nestjs-adapters/polka';
 import { RestanaAdapter } from '@nestjs-adapters/restana';
 import { HyperExpressAdapter } from '@nestjs-adapters/hyper-express';
+import getPort from 'get-port';
 
 const Adapters = [
     KoaAdapter,
@@ -18,11 +19,15 @@ const Adapters = [
     HyperExpressAdapter,
 ];
 
+const url = 'http://localhost';
+
 Adapters.forEach((Adapter) => {
+    let port: number;
     describe(`CRUD ${Adapter.name} (e2e)`, () => {
         let app: INestApplication;
 
-        beforeEach(async () => {
+        beforeAll(async () => {
+            port = await getPort();
             const moduleFixture: TestingModule = await Test.createTestingModule(
                 {
                     imports: [AppModule],
@@ -36,15 +41,16 @@ Adapters.forEach((Adapter) => {
             });
             app.useGlobalPipes(new ValidationPipe());
             await app.init();
+            await app.listen(port);
         });
 
-        afterEach(async () => {
+        afterAll(async () => {
             app && (await app.close());
             app = null;
         });
 
         it('/api/v1/resources (GET)', (done) => {
-            request(app.getHttpServer())
+            request(`${url}:${port}`)
                 .get('/api/v1/resources')
                 .expect(200)
                 .end((err, res) => {
@@ -55,7 +61,7 @@ Adapters.forEach((Adapter) => {
         });
 
         it('/api/v2/resources (GET)', (done) => {
-            request(app.getHttpServer())
+            request(`${url}:${port}`)
                 .get('/api/v2/resources')
                 .expect(200)
                 .end((err, res) => {

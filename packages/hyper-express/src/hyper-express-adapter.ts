@@ -16,17 +16,18 @@ import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory'
 import { Response, Server, Request } from 'hyper-express';
 import { parse } from 'content-type';
 import type { ServerConstructorOptions } from 'hyper-express/types/components/Server';
+import { EventEmitter } from 'stream';
+import { applyMixins } from './utils';
+
+applyMixins(Server, [EventEmitter]);
 
 export class HyperExpressAdapter extends AbstractHttpAdapter<
     Server,
     Request,
     Response
 > {
-    constructor(opts?: ServerConstructorOptions) {
-        super(new Server(opts));
-        this.httpServer = this.instance;
-        //@ts-ignore
-        this.httpServer.address = function () {};
+    constructor(private opts?: ServerConstructorOptions) {
+        super();
     }
 
     private readonly routerMethodFactory = new RouterMethodFactory();
@@ -92,11 +93,7 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         callback?: () => void,
     );
     public listen(port: any, ...args: any[]) {
-        //@ts-ignore
-        this.httpServer.address = function () {
-            return { port: `https://localhost:${port}` };
-        };
-        return this.httpServer.listen(port, ...args);
+        return this.httpServer.listen(port);
     }
 
     public close() {
@@ -163,8 +160,8 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
             .bind(this.instance);
     }
 
-    public initHttpServer(options: NestApplicationOptions) {
-        this.httpServer = this.instance = new Server();
+    public initHttpServer(_options: NestApplicationOptions) {
+        this.httpServer = this.instance = new Server(this.opts);
     }
 
     public registerParserMiddleware() {
