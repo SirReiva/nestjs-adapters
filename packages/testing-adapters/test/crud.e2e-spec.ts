@@ -24,7 +24,7 @@ const url = 'http://localhost';
 Adapters.forEach((Adapter) => {
     let port: number;
     describe(`CRUD ${Adapter.name} (e2e)`, () => {
-        let app: INestApplication;
+        let app: INestApplication | null;
 
         beforeAll(async () => {
             port = await getPort();

@@ -10,16 +10,30 @@ import {
     VERSION_NEUTRAL,
 } from '@nestjs/common/interfaces';
 import { NestApplicationOptions } from '@nestjs/common/interfaces/nest-application-options.interface';
-import { isNil, isObject, isString } from '@nestjs/common/utils/shared.utils';
+import {
+    isNil,
+    isObject,
+    isString,
+    isUndefined,
+} from '@nestjs/common/utils/shared.utils';
 import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
 import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
-import { Response, Server, Request } from 'hyper-express';
 import { parse } from 'content-type';
-import type { ServerConstructorOptions } from 'hyper-express/types/components/Server';
-import { EventEmitter } from 'stream';
-import { applyMixins } from './utils';
+import {
+    Request,
+    Response,
+    Server,
+    ServerConstructorOptions,
+} from 'hyper-express';
 
-applyMixins(Server, [EventEmitter]);
+type VersionedRoute = <
+    TRequest extends Record<string, any> = any,
+    TResponse = any,
+>(
+    req: TRequest,
+    res: TResponse,
+    next: () => void,
+) => any;
 
 export class HyperExpressAdapter extends AbstractHttpAdapter<
     Server,
@@ -28,6 +42,16 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
 > {
     constructor(private opts?: ServerConstructorOptions) {
         super();
+
+        this.httpServer = this.instance = new Server(this.opts);
+    }
+
+    port: number;
+    once() {}
+    removeListener() {}
+
+    address() {
+        return `0.0.0.0:${this.port}`;
     }
 
     private readonly routerMethodFactory = new RouterMethodFactory();
@@ -41,13 +65,28 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         }
         if (body instanceof StreamableFile) {
             const streamHeaders = body.getHeaders();
-            if (response.getHeader('Content-Type') === undefined) {
+            if (
+                response.getHeader('Content-Type') === undefined &&
+                streamHeaders.type !== undefined
+            ) {
                 response.setHeader('Content-Type', streamHeaders.type);
             }
-            if (response.getHeader('Content-Disposition') === undefined) {
+            if (
+                response.getHeader('Content-Disposition') === undefined &&
+                streamHeaders.disposition !== undefined
+            ) {
                 response.setHeader(
                     'Content-Disposition',
                     streamHeaders.disposition,
+                );
+            }
+            if (
+                response.getHeader('Content-Length') === undefined &&
+                streamHeaders.length !== undefined
+            ) {
+                response.setHeader(
+                    'Content-Length',
+                    streamHeaders.length.toString(),
                 );
             }
             return body.getStream().pipe(response);
@@ -92,15 +131,24 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         hostname: string,
         callback?: () => void,
     );
-    public listen(port: any, ...args: any[]) {
-        return this.httpServer.listen(port);
+    public listen(port: any, hostname?: any, callback?: any) {
+        this.port = port;
+        const host = typeof hostname === 'string' ? hostname : undefined;
+        const fn = callback || hostname;
+        this.instance.listen(Number(port), host).then(() => {
+            fn && fn(port);
+        });
+    }
+
+    getHttpServer(): any {
+        return this;
     }
 
     public close() {
-        if (!this.httpServer) {
+        if (!this.instance) {
             return undefined;
         }
-        return Promise.resolve(this.httpServer.close());
+        return Promise.resolve(this.instance.close());
     }
 
     public set(...args: any[]) {
@@ -160,28 +208,28 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
             .bind(this.instance);
     }
 
-    public initHttpServer(_options: NestApplicationOptions) {
-        this.httpServer = this.instance = new Server(this.opts);
-    }
+    public initHttpServer(_options: NestApplicationOptions) {}
 
     public registerParserMiddleware() {
-        this.httpServer.use(async (req, _res, next) => {
-            const type = parse(req.header('Content-Type'));
+        this.instance.use(async (req, _res, _next) => {
+            const coontentType = req.header('Content-Type');
+            if (!coontentType) return;
+            const type = parse(coontentType);
             if (type.type === 'application/json') {
                 req.body = await req.json({});
-                return next();
+                return;
             }
             if (type.type === 'text/plain') {
                 req.body = await req.text();
-                return next();
+                return;
             }
             if (type.type === 'application/x-www-form-urlencoded') {
                 req.body = await req.urlencoded();
-                return next();
+                return;
             }
             if (type.type === 'application/octet-stream') {
                 req.body = await req.buffer();
-                return next();
+                return;
             }
         });
     }
@@ -200,21 +248,85 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         handler: Function,
         version: VersionValue,
         versioningOptions: VersioningOptions,
-    ) {
-        return <TRequest extends Record<string, any> = any, TResponse = any>(
-            req: TRequest,
-            res: TResponse,
-            next: () => void,
-        ) => {
-            if (version === VERSION_NEUTRAL) {
-                return handler(req, res, next);
+    ): VersionedRoute {
+        const callNextHandler: VersionedRoute = (req, res, next) => {
+            if (!next) {
+                throw new InternalServerErrorException(
+                    'HTTP adapter does not support filtering on version',
+                );
             }
+            return next();
+        };
+
+        if (
+            version === VERSION_NEUTRAL ||
             // URL Versioning is done via the path, so the filter continues forward
-            if (versioningOptions.type === VersioningType.URI) {
-                return handler(req, res, next);
-            }
-            // Media Type (Accept Header) Versioning Handler
-            if (versioningOptions.type === VersioningType.MEDIA_TYPE) {
+            versioningOptions.type === VersioningType.URI
+        ) {
+            const handlerForNoVersioning: VersionedRoute = (req, res, next) =>
+                handler(req, res, next);
+
+            return handlerForNoVersioning;
+        }
+
+        // Custom Extractor Versioning Handler
+        if (versioningOptions.type === VersioningType.CUSTOM) {
+            const handlerForCustomVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
+                const extractedVersion = versioningOptions.extractor(req);
+
+                if (Array.isArray(version)) {
+                    if (
+                        Array.isArray(extractedVersion) &&
+                        version.filter((v) =>
+                            extractedVersion.includes(v as string),
+                        ).length
+                    ) {
+                        return handler(req, res, next);
+                    }
+
+                    if (
+                        isString(extractedVersion) &&
+                        version.includes(extractedVersion)
+                    ) {
+                        return handler(req, res, next);
+                    }
+                } else if (isString(version)) {
+                    // Known bug here - if there are multiple versions supported across separate
+                    // handlers/controllers, we can't select the highest matching handler.
+                    // Since this code is evaluated per-handler, then we can't see if the highest
+                    // specified version exists in a different handler.
+                    if (
+                        Array.isArray(extractedVersion) &&
+                        extractedVersion.includes(version)
+                    ) {
+                        return handler(req, res, next);
+                    }
+
+                    if (
+                        isString(extractedVersion) &&
+                        version === extractedVersion
+                    ) {
+                        return handler(req, res, next);
+                    }
+                }
+
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForCustomVersioning;
+        }
+
+        // Media Type (Accept Header) Versioning Handler
+        if (versioningOptions.type === VersioningType.MEDIA_TYPE) {
+            const handlerForMediaTypeVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
                 const MEDIA_TYPE_HEADER = 'Accept';
                 const acceptHeaderValue: string | undefined =
                     req.headers?.[MEDIA_TYPE_HEADER] ||
@@ -222,9 +334,16 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
 
                 const acceptHeaderVersionParameter = acceptHeaderValue
                     ? acceptHeaderValue.split(';')[1]
-                    : '';
+                    : undefined;
 
-                if (acceptHeaderVersionParameter) {
+                // No version was supplied
+                if (isUndefined(acceptHeaderVersionParameter)) {
+                    if (Array.isArray(version)) {
+                        if (version.includes(VERSION_NEUTRAL)) {
+                            return handler(req, res, next);
+                        }
+                    }
+                } else {
                     const headerVersion = acceptHeaderVersionParameter.split(
                         versioningOptions.key,
                     )[1];
@@ -239,14 +358,32 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
                         }
                     }
                 }
-            }
-            // Header Versioning Handler
-            else if (versioningOptions.type === VersioningType.HEADER) {
+
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForMediaTypeVersioning;
+        }
+
+        // Header Versioning Handler
+        if (versioningOptions.type === VersioningType.HEADER) {
+            const handlerForHeaderVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
                 const customHeaderVersionParameter: string | undefined =
                     req.headers?.[versioningOptions.header] ||
                     req.headers?.[versioningOptions.header.toLowerCase()];
 
-                if (customHeaderVersionParameter) {
+                // No version was supplied
+                if (isUndefined(customHeaderVersionParameter)) {
+                    if (Array.isArray(version)) {
+                        if (version.includes(VERSION_NEUTRAL)) {
+                            return handler(req, res, next);
+                        }
+                    }
+                } else {
                     if (Array.isArray(version)) {
                         if (version.includes(customHeaderVersionParameter)) {
                             return handler(req, res, next);
@@ -257,14 +394,59 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
                         }
                     }
                 }
-            }
 
-            if (!next) {
-                throw new InternalServerErrorException(
-                    'HTTP adapter does not support filtering on version',
-                );
-            }
-            return next();
-        };
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForHeaderVersioning;
+        }
+    }
+
+    get(handler: any);
+    get(path: any, handler: any);
+    get(path: string, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.get(route, fn);
+    }
+
+    post(handler: any);
+    post(path: any, handler: any);
+    post(path: unknown, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.post(route, fn);
+    }
+
+    patch(handler: any);
+    patch(path: any, handler: any);
+    patch(path: unknown, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.patch(route, fn);
+    }
+
+    put(handler: any);
+    put(path: any, handler: any);
+    put(path: unknown, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.put(route, fn);
+    }
+
+    delete(handler: any);
+    delete(path: any, handler: any);
+    delete(path: unknown, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.delete(route, fn);
+    }
+
+    options(handler: any);
+    options(path: any, handler: any);
+    options(path: unknown, handler?: any): any {
+        const route = typeof path === 'string' ? path : '';
+        const fn = handler || path;
+        this.instance.options(route, fn);
     }
 }
