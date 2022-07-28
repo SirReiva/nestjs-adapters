@@ -21,8 +21,8 @@
         "test:e2e:watch": "jest --config ./test/jest-e2e.json --watch"
     },
     "dependencies": {
-        "@nestjs/common": "9.0.6",
-        "@nestjs/core": "9.0.6",
+        "@nestjs/common": "9.0.7",
+        "@nestjs/core": "9.0.7",
         "@nestjs-adapters/hyper-express": "^1.0.0",
         "@nestjs-adapters/koa": "^1.0.0",
         "@nestjs-adapters/polka": "^1.0.0",
@@ -40,7 +40,7 @@
         "@nestjs/testing": "8.4.7",
         "@nestjs/cli": "9.0.0",
         "@nestjs/schematics": "9.0.1",
-        "@nestjs/testing": "9.0.6",
+        "@nestjs/testing": "9.0.7",
         "@types/jest": "28.1.6",
         "@types/multer": "^1.4.7",
         "@types/node": "^18.0.0",
