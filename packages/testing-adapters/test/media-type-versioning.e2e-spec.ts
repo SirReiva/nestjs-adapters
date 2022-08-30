@@ -10,14 +10,14 @@ import getPort from 'get-port';
 import request from 'supertest';
 import { AppModule } from './../src/app.module';
 
-const Adapters = [KoaAdapter, /*PolkaAdapter,*/ RestanaAdapter];
+const Adapters = [KoaAdapter, RestanaAdapter];
 
 const url = 'http://localhost';
 
 Adapters.forEach((Adapter) => {
     let port: number;
     describe(`VERSIONING ${Adapter.name} (e2e)`, () => {
-        let app: INestApplication;
+        let app: INestApplication | null;
 
         beforeAll(async () => {
             port = await getPort();

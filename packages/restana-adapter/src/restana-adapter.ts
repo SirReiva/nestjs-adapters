@@ -9,27 +9,29 @@ import {
     VersionValue,
     VERSION_NEUTRAL,
 } from '@nestjs/common/interfaces';
-import { loadPackage } from '@nestjs/common/utils/load-package.util';
-import { NestApplicationOptions } from '@nestjs/common/interfaces/nest-application-options.interface';
-import { isNil, isObject, isString } from '@nestjs/common/utils/shared.utils';
-import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
-import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
-import { createServer as createHttpServer } from 'http';
-import { createServer as createHttpsServer } from 'https';
-import restana, {
-    Service,
-    Protocol,
-    Response,
-    Request,
-    ErrorHandler,
-    RequestHandler,
-} from 'restana';
-import type { ServeStaticOptions } from 'serve-static';
 import {
     CorsOptions,
     CorsOptionsDelegate,
 } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { NestApplicationOptions } from '@nestjs/common/interfaces/nest-application-options.interface';
+import { loadPackage } from '@nestjs/common/utils/load-package.util';
+import { isString } from '@nestjs/common/utils/shared.utils';
+import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
+import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
 import { json, urlencoded } from 'body-parser';
+// import { createServer as createHttpServer } from 'http';
+// import { createServer as createHttpsServer } from 'https';
+import restana, {
+    ErrorHandler,
+    Protocol,
+    Request,
+    RequestHandler,
+    Response,
+    Service,
+} from 'restana';
+import type { ServeStaticOptions } from 'serve-static';
+//@ts-ignore
+import Server from 'low-http-server';
 
 export class RestanaAdapter<T extends Protocol> extends AbstractHttpAdapter {
     private readonly routerMethodFactory = new RouterMethodFactory();
@@ -39,6 +41,14 @@ export class RestanaAdapter<T extends Protocol> extends AbstractHttpAdapter {
 
     constructor() {
         super();
+    }
+
+    end(response: Response<T>, message?: string) {
+        response.end(message);
+    }
+
+    isHeadersSent(response: Response<T>): Boolean {
+        return response.headersSent;
     }
 
     public reply(response: Response<T>, body: any, statusCode?: number) {
@@ -56,7 +66,7 @@ export class RestanaAdapter<T extends Protocol> extends AbstractHttpAdapter {
         return (response.statusCode = statusCode);
     }
 
-    public render(response: Response<T>, view: string, options: any) {
+    public render(_response: Response<T>, view: string, options: any) {
         throw new Error('Not implemented');
     }
 
@@ -164,18 +174,23 @@ export class RestanaAdapter<T extends Protocol> extends AbstractHttpAdapter {
     }
 
     public initHttpServer(options: NestApplicationOptions) {
-        const isHttpsEnabled = options && options.httpsOptions;
-        if (isHttpsEnabled) {
-            this.httpServer = createHttpsServer(options.httpsOptions);
-            return;
-        }
-        this.httpServer = createHttpServer();
+        // const isHttpsEnabled = options && options.httpsOptions;
+        // if (isHttpsEnabled) {
+        //     this.httpServer = createHttpsServer(options.httpsOptions);
+        //     return;
+        // }
+        // this.httpServer = createHttpServer();
+        this.httpServer = Server({});
+        this.httpServer.address = function () {
+            return true;
+        };
         this.instance = restana<T>({
             errorHandler: (...args) =>
                 this._errorFoudHandler && this._errorFoudHandler(...args),
             defaultRoute: (...args) =>
                 this._notFoudHandler && this._notFoudHandler(...args),
             server: this.httpServer,
+            prioRequestsProcessing: false,
         });
     }
 

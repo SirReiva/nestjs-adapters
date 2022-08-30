@@ -26,6 +26,14 @@ export class TinyAdapter extends AbstractHttpAdapter {
         super(instance);
     }
 
+    end(response: Response, message?: string) {
+        response.end(message);
+    }
+
+    isHeadersSent(response: Response): Boolean {
+        return response.headersSent;
+    }
+
     public reply(response: Response, body: any, statusCode?: number) {
         if (statusCode) {
             response.status(statusCode);

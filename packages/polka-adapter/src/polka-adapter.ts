@@ -50,6 +50,14 @@ export class PolkaAdapter extends AbstractHttpAdapter {
         );
     }
 
+    end(response: ExtendedResponse, message?: string) {
+        response.end(message);
+    }
+
+    isHeadersSent(response: ExtendedResponse): Boolean {
+        return response.headersSent;
+    }
+
     reply(response: ExtendedResponse, body: any, statusCode?: number) {
         const status = statusCode || response.code;
         if (body instanceof StreamableFile) {

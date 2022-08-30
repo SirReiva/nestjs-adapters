@@ -46,6 +46,14 @@ export class HyperExpressAdapter extends AbstractHttpAdapter<
         this.httpServer = this.instance = new Server(this.opts);
     }
 
+    end(response: Response, message?: string) {
+        response.end(message);
+    }
+
+    isHeadersSent(response: Response): Boolean {
+        return response.headersSent;
+    }
+
     port: number;
     once() {}
     removeListener() {}

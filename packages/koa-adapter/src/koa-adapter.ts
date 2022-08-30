@@ -18,7 +18,12 @@ import {
 } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { NestApplicationOptions } from '@nestjs/common/interfaces/nest-application-options.interface';
 import { loadPackage } from '@nestjs/common/utils/load-package.util';
-import { isNil, isObject, isString } from '@nestjs/common/utils/shared.utils';
+import {
+    isNil,
+    isObject,
+    isString,
+    isUndefined,
+} from '@nestjs/common/utils/shared.utils';
 import { AbstractHttpAdapter } from '@nestjs/core/adapters/http-adapter';
 import { RouterMethodFactory } from '@nestjs/core/helpers/router-method-factory';
 import { createServer as createHttpServer } from 'http';
@@ -40,6 +45,15 @@ type ViewsOptions = Exclude<Parameters<typeof koaViews>[1], undefined>;
 export interface KoaViewsOptions extends Omit<ViewsOptions, 'autoRender'> {
     viewsDir: string;
 }
+
+type VersionedRoute = <
+    TRequest extends Record<string, any> = any,
+    TResponse = any,
+>(
+    req: TRequest,
+    res: TResponse,
+    next: () => void,
+) => any;
 
 export type NestKoaFunctionalMiddleware = (
     req: Request,
@@ -81,6 +95,14 @@ export class KoaAdapter extends AbstractHttpAdapter {
         super(instance || new Koa());
     }
 
+    end(response: Response, message?: string) {
+        response.res.end(message);
+    }
+
+    isHeadersSent(response: Response): Boolean {
+        return response.headerSent;
+    }
+
     public reply(response: Response, body: any, statusCode?: number) {
         response.ctx.respond = false;
         if (statusCode) {
@@ -91,13 +113,28 @@ export class KoaAdapter extends AbstractHttpAdapter {
         }
         if (body instanceof StreamableFile) {
             const streamHeaders = body.getHeaders();
-            if (response.res.getHeader('Content-Type') === undefined) {
+            if (
+                response.res.getHeader('Content-Type') === undefined &&
+                streamHeaders.type !== undefined
+            ) {
                 response.res.setHeader('Content-Type', streamHeaders.type);
             }
-            if (response.res.getHeader('Content-Disposition') === undefined) {
+            if (
+                response.res.getHeader('Content-Disposition') === undefined &&
+                streamHeaders.disposition !== undefined
+            ) {
                 response.res.setHeader(
                     'Content-Disposition',
                     streamHeaders.disposition,
+                );
+            }
+            if (
+                response.res.getHeader('Content-Length') === undefined &&
+                streamHeaders.length !== undefined
+            ) {
+                response.res.setHeader(
+                    'Content-Length',
+                    streamHeaders.length.toString(),
                 );
             }
             return body.getStream().pipe(response.res);
@@ -267,21 +304,85 @@ export class KoaAdapter extends AbstractHttpAdapter {
         handler: Function,
         version: VersionValue,
         versioningOptions: VersioningOptions,
-    ) {
-        return <TRequest extends Record<string, any> = any, TResponse = any>(
-            req: TRequest,
-            res: TResponse,
-            next: () => void,
-        ) => {
-            if (version === VERSION_NEUTRAL) {
-                return handler(req, res, next);
+    ): VersionedRoute {
+        const callNextHandler: VersionedRoute = (req, res, next) => {
+            if (!next) {
+                throw new InternalServerErrorException(
+                    'HTTP adapter does not support filtering on version',
+                );
             }
+            return next();
+        };
+
+        if (
+            version === VERSION_NEUTRAL ||
             // URL Versioning is done via the path, so the filter continues forward
-            if (versioningOptions.type === VersioningType.URI) {
-                return handler(req, res, next);
-            }
-            // Media Type (Accept Header) Versioning Handler
-            if (versioningOptions.type === VersioningType.MEDIA_TYPE) {
+            versioningOptions.type === VersioningType.URI
+        ) {
+            const handlerForNoVersioning: VersionedRoute = (req, res, next) =>
+                handler(req, res, next);
+
+            return handlerForNoVersioning;
+        }
+
+        // Custom Extractor Versioning Handler
+        if (versioningOptions.type === VersioningType.CUSTOM) {
+            const handlerForCustomVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
+                const extractedVersion = versioningOptions.extractor(req);
+
+                if (Array.isArray(version)) {
+                    if (
+                        Array.isArray(extractedVersion) &&
+                        version.filter((v) =>
+                            extractedVersion.includes(v as string),
+                        ).length
+                    ) {
+                        return handler(req, res, next);
+                    }
+
+                    if (
+                        isString(extractedVersion) &&
+                        version.includes(extractedVersion)
+                    ) {
+                        return handler(req, res, next);
+                    }
+                } else if (isString(version)) {
+                    // Known bug here - if there are multiple versions supported across separate
+                    // handlers/controllers, we can't select the highest matching handler.
+                    // Since this code is evaluated per-handler, then we can't see if the highest
+                    // specified version exists in a different handler.
+                    if (
+                        Array.isArray(extractedVersion) &&
+                        extractedVersion.includes(version)
+                    ) {
+                        return handler(req, res, next);
+                    }
+
+                    if (
+                        isString(extractedVersion) &&
+                        version === extractedVersion
+                    ) {
+                        return handler(req, res, next);
+                    }
+                }
+
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForCustomVersioning;
+        }
+
+        // Media Type (Accept Header) Versioning Handler
+        if (versioningOptions.type === VersioningType.MEDIA_TYPE) {
+            const handlerForMediaTypeVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
                 const MEDIA_TYPE_HEADER = 'Accept';
                 const acceptHeaderValue: string | undefined =
                     req.headers?.[MEDIA_TYPE_HEADER] ||
@@ -289,9 +390,16 @@ export class KoaAdapter extends AbstractHttpAdapter {
 
                 const acceptHeaderVersionParameter = acceptHeaderValue
                     ? acceptHeaderValue.split(';')[1]
-                    : '';
+                    : undefined;
 
-                if (acceptHeaderVersionParameter) {
+                // No version was supplied
+                if (isUndefined(acceptHeaderVersionParameter)) {
+                    if (Array.isArray(version)) {
+                        if (version.includes(VERSION_NEUTRAL)) {
+                            return handler(req, res, next);
+                        }
+                    }
+                } else {
                     const headerVersion = acceptHeaderVersionParameter.split(
                         versioningOptions.key,
                     )[1];
@@ -306,14 +414,32 @@ export class KoaAdapter extends AbstractHttpAdapter {
                         }
                     }
                 }
-            }
-            // Header Versioning Handler
-            else if (versioningOptions.type === VersioningType.HEADER) {
+
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForMediaTypeVersioning;
+        }
+
+        // Header Versioning Handler
+        if (versioningOptions.type === VersioningType.HEADER) {
+            const handlerForHeaderVersioning: VersionedRoute = (
+                req,
+                res,
+                next,
+            ) => {
                 const customHeaderVersionParameter: string | undefined =
                     req.headers?.[versioningOptions.header] ||
                     req.headers?.[versioningOptions.header.toLowerCase()];
 
-                if (customHeaderVersionParameter) {
+                // No version was supplied
+                if (isUndefined(customHeaderVersionParameter)) {
+                    if (Array.isArray(version)) {
+                        if (version.includes(VERSION_NEUTRAL)) {
+                            return handler(req, res, next);
+                        }
+                    }
+                } else {
                     if (Array.isArray(version)) {
                         if (version.includes(customHeaderVersionParameter)) {
                             return handler(req, res, next);
@@ -324,15 +450,12 @@ export class KoaAdapter extends AbstractHttpAdapter {
                         }
                     }
                 }
-            }
 
-            if (!next) {
-                throw new InternalServerErrorException(
-                    'HTTP adapter does not support filtering on version',
-                );
-            }
-            return next();
-        };
+                return callNextHandler(req, res, next);
+            };
+
+            return handlerForHeaderVersioning;
+        }
     }
 
     private createRouteHandler(routeHandler: KoaHandler) {

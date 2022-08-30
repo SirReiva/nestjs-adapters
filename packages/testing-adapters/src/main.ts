@@ -13,7 +13,7 @@ async function bootstrap() {
     // const { App } = await importDynamic('@tinyhttp/app');
     // const tApp = new App();
 
-    const app = await NestFactory.create(AppModule, new KoaAdapter());
+    const app = await NestFactory.create(AppModule, new KoaAdapter(), {});
     app.setGlobalPrefix('api');
     app.enableVersioning({
         type: VersioningType.HEADER,

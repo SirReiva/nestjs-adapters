@@ -10,15 +10,21 @@ import { AppModule } from './../src/app.module';
 import { PolkaAdapter } from '@nestjs-adapters/polka';
 import { RestanaAdapter } from '@nestjs-adapters/restana';
 import getPort from 'get-port';
+import { HyperExpressAdapter } from '@nestjs-adapters/hyper-express';
 
-const Adapters = [KoaAdapter, PolkaAdapter, RestanaAdapter];
+const Adapters = [
+    KoaAdapter,
+    PolkaAdapter,
+    RestanaAdapter,
+    HyperExpressAdapter,
+];
 
 const url = 'http://localhost';
 
 Adapters.forEach((Adapter) => {
     let port: number;
     describe(`VERSIONING ${Adapter.name} (e2e)`, () => {
-        let app: INestApplication;
+        let app: INestApplication | null;
 
         beforeAll(async () => {
             port = await getPort();
