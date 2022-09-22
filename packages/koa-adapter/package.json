@@ -13,8 +13,8 @@
     "devDependencies": {
         "@koa/cors": "3.3.0",
         "@koa/multer": "3.0.0",
-        "@nestjs/common": "9.1.1",
-        "@nestjs/core": "9.1.1",
+        "@nestjs/common": "9.1.2",
+        "@nestjs/core": "9.1.2",
         "@nestjs/swagger": "6.1.2",
         "@types/koa": "2.13.5",
         "@types/koa__cors": "3.3.0",
