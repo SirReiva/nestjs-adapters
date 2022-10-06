@@ -22,7 +22,7 @@
         "typescript": "4.8.4"
     },
     "dependencies": {
-        "body-parser": "1.20.0",
+        "body-parser": "1.20.1",
         "low-http-server": "4.1.0",
         "restana": "4.9.6"
     }
