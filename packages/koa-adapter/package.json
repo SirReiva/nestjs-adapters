@@ -11,7 +11,7 @@
     "author": "SirReiva",
     "license": "MIT",
     "devDependencies": {
-        "@koa/cors": "3.4.2",
+        "@koa/cors": "4.0.0",
         "@koa/multer": "3.0.0",
         "@nestjs/common": "9.1.4",
         "@nestjs/core": "9.1.4",
