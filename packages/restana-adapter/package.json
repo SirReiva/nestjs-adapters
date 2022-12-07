@@ -11,18 +11,18 @@
     "author": "SirReiva",
     "license": "MIT",
     "devDependencies": {
-        "@nestjs/common": "9.0.11",
-        "@nestjs/core": "9.0.11",
+        "@nestjs/common": "9.2.1",
+        "@nestjs/core": "9.2.1",
         "@types/body-parser": "1.19.2",
-        "@types/cors": "2.8.12",
-        "@types/node": "18.7.14",
+        "@types/cors": "2.8.13",
+        "@types/node": "18.11.11",
         "@types/serve-static": "1.15.0",
         "cors": "2.8.5",
         "serve-static": "1.15.0",
-        "typescript": "4.8.2"
+        "typescript": "4.8.4"
     },
     "dependencies": {
-        "body-parser": "1.20.0",
+        "body-parser": "1.20.1",
         "low-http-server": "4.1.0",
         "restana": "4.9.6"
     }
