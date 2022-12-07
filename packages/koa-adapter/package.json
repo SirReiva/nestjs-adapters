@@ -29,7 +29,7 @@
         "typescript": "4.9.3"
     },
     "dependencies": {
-        "koa": "2.14.0",
+        "koa": "2.14.1",
         "koa-bodyparser": "4.3.0",
         "koa-router": "12.0.0",
         "reflect-metadata": "0.1.13"
