@@ -22,7 +22,7 @@
         "@types/koa-router": "7.4.4",
         "@types/koa-static": "4.0.2",
         "@types/koa__multer": "2.0.4",
-        "@types/node": "18.11.13",
+        "@types/node": "18.11.14",
         "koa-static": "5.0.0",
         "koa2-swagger-ui": "5.6.0",
         "koa-views": "8.0.0",
