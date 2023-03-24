@@ -5,7 +5,7 @@
         "@nestjs/platform-express": "9.3.12",
         "lerna": "6.6.0",
         "lerna-dependency-graph": "1.1.0",
-        "prettier": "2.8.6",
+        "prettier": "2.8.7",
         "rimraf": "4.4.1"
     },
     "scripts": {
