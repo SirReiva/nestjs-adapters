@@ -16,7 +16,7 @@
         "@nestjs/common": "9.3.12",
         "@nestjs/core": "9.3.12",
         "@nestjs/swagger": "6.2.1",
-        "@types/koa": "2.13.5",
+        "@types/koa": "2.13.6",
         "@types/koa__cors": "4.0.0",
         "@types/koa-bodyparser": "4.3.10",
         "@types/koa-router": "7.4.4",
