@@ -11,8 +11,8 @@
     "author": "SirReiva",
     "license": "MIT",
     "devDependencies": {
-        "@nestjs/common": "9.3.12",
-        "@nestjs/core": "9.3.12",
+        "@nestjs/common": "9.4.0",
+        "@nestjs/core": "9.4.0",
         "@types/node": "18.15.11",
         "@tinyhttp/cors": "2.0.0",
         "sirv": "2.0.2",
