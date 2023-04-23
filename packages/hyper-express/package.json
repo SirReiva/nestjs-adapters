@@ -20,7 +20,7 @@
     },
     "dependencies": {
         "content-type": "1.0.5",
-        "hyper-express": "6.5.8",
+        "hyper-express": "6.5.9",
         "reflect-metadata": "0.1.13"
     }
 }
