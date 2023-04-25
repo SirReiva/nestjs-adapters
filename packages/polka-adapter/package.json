@@ -18,7 +18,7 @@
         "@types/node": "18.16.0",
         "@types/polka": "0.5.4",
         "cors": "2.8.5",
-        "sirv": "2.0.2",
+        "sirv": "2.0.3",
         "typescript": "4.9.5"
     },
     "dependencies": {
