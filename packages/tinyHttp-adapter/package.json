@@ -19,6 +19,6 @@
         "typescript": "4.9.5"
     },
     "dependencies": {
-        "@tinyhttp/app": "2.1.0"
+        "@tinyhttp/app": "2.1.3"
     }
 }
