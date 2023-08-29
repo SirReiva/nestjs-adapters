@@ -15,7 +15,7 @@
         "@koa/multer": "3.0.2",
         "@nestjs/common": "10.2.2",
         "@nestjs/core": "10.2.2",
-        "@nestjs/swagger": "7.1.9",
+        "@nestjs/swagger": "7.1.10",
         "@types/koa": "2.13.8",
         "@types/koa__cors": "4.0.0",
         "@types/koa-bodyparser": "4.3.10",
