@@ -14,7 +14,7 @@
         "@nestjs/common": "10.2.4",
         "@nestjs/core": "10.2.4",
         "@types/body-parser": "1.19.2",
-        "@types/cors": "2.8.13",
+        "@types/cors": "2.8.14",
         "@types/node": "18.17.14",
         "@types/polka": "0.5.4",
         "cors": "2.8.5",
