@@ -15,7 +15,7 @@
         "@nestjs/core": "10.3.3",
         "@types/body-parser": "1.19.5",
         "@types/cors": "2.8.17",
-        "@types/node": "20.11.26",
+        "@types/node": "20.11.27",
         "@types/serve-static": "1.15.5",
         "cors": "2.8.5",
         "serve-static": "1.15.0",
