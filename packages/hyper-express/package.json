@@ -14,7 +14,7 @@
         "@nestjs/common": "10.3.8",
         "@nestjs/core": "10.3.8",
         "@types/content-type": "1.1.8",
-        "@types/node": "20.12.10",
+        "@types/node": "20.12.11",
         "live-directory": "3.0.3",
         "typescript": "4.9.5"
     },
