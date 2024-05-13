@@ -6,7 +6,7 @@
         "lerna": "8.1.2",
         "lerna-dependency-graph": "1.1.0",
         "prettier": "3.2.5",
-        "rimraf": "5.0.5"
+        "rimraf": "5.0.7"
     },
     "scripts": {
         "prepare": "lerna bootstrap --hoist",
