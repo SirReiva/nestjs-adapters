@@ -24,6 +24,6 @@
     "dependencies": {
         "body-parser": "1.20.3",
         "low-http-server": "4.2.1",
-        "restana": "4.9.9"
+        "restana": "5.0.0"
     }
 }
