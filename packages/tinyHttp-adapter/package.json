@@ -15,7 +15,7 @@
         "@nestjs/core": "11.0.3",
         "@types/node": "22.13.4",
         "@tinyhttp/cors": "2.0.1",
-        "sirv": "3.0.0",
+        "sirv": "3.0.1",
         "typescript": "4.9.5"
     },
     "dependencies": {
