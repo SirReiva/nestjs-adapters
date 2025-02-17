@@ -16,7 +16,7 @@
         "@types/node": "22.13.4",
         "@tinyhttp/cors": "2.0.1",
         "sirv": "3.0.1",
-        "typescript": "4.9.5"
+        "typescript": "5.7.3"
     },
     "dependencies": {
         "@tinyhttp/app": "2.5.0"
