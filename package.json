@@ -3,7 +3,7 @@
     "private": true,
     "devDependencies": {
         "@nestjs/platform-express": "11.0.3",
-        "lerna": "8.2.1",
+        "lerna": "8.2.2",
         "lerna-dependency-graph": "1.1.0",
         "prettier": "3.5.3",
         "rimraf": "6.0.1"
