@@ -13,7 +13,7 @@
     "devDependencies": {
         "@nestjs/common": "11.1.3",
         "@nestjs/core": "11.1.3",
-        "@types/content-type": "1.1.8",
+        "@types/content-type": "1.1.9",
         "@types/node": "22.15.30",
         "live-directory": "3.0.3",
         "typescript": "4.9.5"
