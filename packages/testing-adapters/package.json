@@ -30,7 +30,7 @@
         "@nestjs-adapters/tiny-http": "^1.0.0",
         "class-transformer": "0.5.1",
         "class-validator": "^0.14.0",
-        "multer": "2.0.2",
+        "multer": "1.4.5-lts.2",
         "reflect-metadata": "^0.2.0",
         "rimraf": "^6.0.0",
         "rxjs": "7.8.2"
@@ -42,7 +42,7 @@
         "@nestjs/schematics": "11.0.9",
         "@nestjs/testing": "11.1.12",
         "@types/jest": "30.0.0",
-        "@types/multer": "^2.0.0",
+        "@types/multer": "^1.4.7",
         "@types/node": "^24.0.0",
         "@types/supertest": "^6.0.0",
         "get-port": "7.1.0",
